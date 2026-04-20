@@ -162,6 +162,29 @@ def products_view(request):
         'search': search,
     })
 
+def edit_product(request, product_id):
+    if not request.session.get('access'):
+        return redirect('login')
+
+    try:
+        product = Product.objects.get(id=product_id)
+    except Product.DoesNotExist:
+        messages.error(request, 'Product not found.')
+        return redirect('products')
+
+    if request.method == 'POST':
+        try:
+            product.name = request.POST.get('name')
+            product.description = request.POST.get('description')
+            product.unit_cost = request.POST.get('unit_cost')
+            product.unit = request.POST.get('unit')
+            product.low_stock_threshold = request.POST.get('low_stock_threshold')
+            product.save()
+            messages.success(request, 'Product updated successfully.')
+        except Exception as e:
+            messages.error(request, f'Error: {str(e)}')
+
+    return redirect('products')
 
 def delete_product(request, product_id):
     if not request.session.get('access'):
