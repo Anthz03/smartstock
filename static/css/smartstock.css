@@ -383,7 +383,7 @@ body {
     padding: 13px 16px;
     vertical-align: middle;
     font-size: 0.87rem;
-    color: #2d4a2d;
+    color: #1a2e1a;
     background: #fff;
 }
 
@@ -397,6 +397,7 @@ body {
 
 .table > :not(caption) > * > * {
     background-color: transparent !important;
+    color: #1a2e1a;
 }
 
 .btn-glass {
@@ -740,6 +741,8 @@ body.dark-mode {
     color: #e0e0e0;
 }
 
+
+
 body.dark-mode .sidebar {
     background: #242424;
     border-right-color: #333;
@@ -921,6 +924,8 @@ body.dark-mode .table tbody td {
     border-bottom-color: #2e2e2e;
 }
 
+
+
 body.dark-mode .table tbody tr:hover td {
     background: #282828;
 }
@@ -1045,6 +1050,14 @@ body.dark-mode .modal-header {
 body.dark-mode .modal-footer {
     background: #2a2a2a;
     border-top-color: #333;
+}
+
+body.dark-mode .table tbody td [style*="color: #1a2e1a"] {
+    color: #e0e0e0 !important;
+}
+
+body.dark-mode .table tbody td [style*="color: #1a3a1a"] {
+    color: #e0e0e0 !important;
 }
 
 body.dark-mode .modal-title {

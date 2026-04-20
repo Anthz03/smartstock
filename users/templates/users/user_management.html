@@ -38,7 +38,7 @@
                             {{ u.username|first|upper }}
                         </div>
                         <div>
-                            <div style="font-weight: 600; color: #1a2e1a; font-size: 0.87rem;">{{ u.username }}</div>
+                            <div style="font-weight: 600; color: #e0e0e0; font-size: 0.87rem;">{{ u.username }}</div>
                             {% if u.username == username %}
                                 <div style="font-size: 0.7rem; color: #2e7d32;">You</div>
                             {% endif %}
@@ -48,7 +48,7 @@
                 <td style="color: #6b8f6b; font-size: 0.83rem;">{{ u.email|default:"—" }}</td>
                 <td>
                     {% if u.role == 'admin' %}
-                        <span class="badge-glass-danger">Admin</span>
+                        <span class="badge-glass-warning">Admin</span>
                     {% else %}
                         <span class="badge-glass-info">Staff</span>
                     {% endif %}
