@@ -6,6 +6,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from .serializers import RegisterSerializer, UserProfileSerializer
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
 
 BASE_API_URL = 'http://127.0.0.1:8000/api'
 
@@ -264,3 +266,11 @@ def stock_out_view(request):
             messages.error(request, f'Error: {error}')
 
     return redirect('inventory')
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def check_role(request):
+    return Response({
+        'username': request.user.username,
+        'role': request.user.role,
+        'is_authenticated': request.user.is_authenticated,
+    })

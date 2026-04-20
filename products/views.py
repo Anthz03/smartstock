@@ -7,7 +7,9 @@ from .models import Product
 from .serializers import ProductSerializer
 
 
+
 class ProductListCreateView(APIView):
+    permission_classes = []
 
     def get_permissions(self):
         if self.request.method == 'POST':
