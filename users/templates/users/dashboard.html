@@ -1,113 +1,126 @@
 {% extends 'users/base.html' %}
 {% block nav_dashboard %}active{% endblock %}
 {% block page_title %}Dashboard{% endblock %}
-{% block page_subtitle %}Welcome back, {{ username }}!{% endblock %}
+{% block page_subtitle %}Overview of your inventory and supply chain.{% endblock %}
+{% block topbar_action %}
+{% endblock %}
 
 {% block content %}
-<div class="row g-4 mb-4">
+<div class="row g-3 mb-4">
     <div class="col-md-4">
         <div class="stat-card">
-            <div class="stat-icon" style="background: rgba(76,201,240,0.15);">
-                <i class="fas fa-box" style="color: #4cc9f0;"></i>
+            <div class="stat-icon" style="background: #eef5ee;">
+                <i class="fas fa-boxes-stacked" style="color: #2e7d32;"></i>
             </div>
-            <div class="stat-value">{{ total_products }}</div>
+            <div class="stat-trend">Active</div>
             <div class="stat-label">Total Products</div>
+            <div class="stat-value">{{ total_products }}</div>
+            <div class="stat-bottom-border green"></div>
         </div>
     </div>
     <div class="col-md-4">
         <div class="stat-card">
-            <div class="stat-icon" style="background: rgba(255,100,100,0.15);">
-                <i class="fas fa-triangle-exclamation" style="color: #ff6b6b;"></i>
+            <div class="stat-icon" style="background: #fff5f5;">
+                <i class="fas fa-triangle-exclamation" style="color: #e53935;"></i>
             </div>
-            <div class="stat-value" style="color: #ff6b6b;">{{ low_stock_count }}</div>
+            {% if low_stock_count > 0 %}
+            <div class="stat-trend urgent">Urgent</div>
+            {% endif %}
             <div class="stat-label">Low Stock Alerts</div>
+            <div class="stat-value {% if low_stock_count > 0 %}danger{% endif %}">{{ low_stock_count }}</div>
+            <div class="stat-bottom-border red"></div>
         </div>
     </div>
     <div class="col-md-4">
         <div class="stat-card">
-            <div class="stat-icon" style="background: rgba(123,94,167,0.15);">
-                <i class="fas fa-arrow-right-arrow-left" style="color: #7b5ea7;"></i>
+            <div class="stat-icon" style="background: #e8f5f3;">
+                <i class="fas fa-arrow-right-arrow-left" style="color: #00897b;"></i>
             </div>
-            <div class="stat-value">{{ recent_transactions|length }}</div>
+            <div class="stat-trend">Last 24 hours</div>
             <div class="stat-label">Recent Transactions</div>
+            <div class="stat-value">{{ recent_transactions|length }}</div>
+            <div class="stat-bottom-border teal"></div>
         </div>
     </div>
 </div>
 
-<div class="row g-4">
+<div class="row g-3">
     <div class="col-md-6">
         <div class="glass-card">
             <div class="card-header">
-                <span><i class="fas fa-triangle-exclamation me-2" style="color: #ff6b6b;"></i> Low Stock Products</span>
+                <span>
+                    <i class="fas fa-triangle-exclamation me-2" style="color: #e53935;"></i>
+                    Low Stock Inventory
+                </span>
+                <a href="/products/" class="view-all">View All</a>
             </div>
-            <div class="card-body p-0">
-                {% if low_stock_products %}
-                <table class="table mb-0">
-                    <thead>
-                        <tr>
-                            <th>Product</th>
-                            <th>Stock</th>
-                            <th>Threshold</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for product in low_stock_products %}
-                        <tr>
-                            <td>{{ product.name }}</td>
-                            <td><span class="badge-glass-danger">{{ product.stock_quantity }}</span></td>
-                            <td style="color: rgba(255,255,255,0.4);">{{ product.low_stock_threshold }}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-                {% else %}
-                <div class="empty-state">
-                    <i class="fas fa-check-circle" style="color: #32c878;"></i>
-                    <p>All products are well stocked!</p>
-                </div>
-                {% endif %}
+            {% if low_stock_products %}
+            <table class="table mb-0">
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th>Stock</th>
+                        <th>Threshold</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for product in low_stock_products %}
+                    <tr>
+                        <td>
+                            <div style="font-weight: 600; color: #1a2e1a;">{{ product.name }}</div>
+                            <div style="font-size: 0.75rem; color: #9ab09a;">{{ product.unit }}</div>
+                        </td>
+                        <td><span class="badge-glass-danger">{{ product.stock_quantity }} left</span></td>
+                        <td style="color: #9ab09a;">min. {{ product.low_stock_threshold }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="empty-state">
+                <i class="fas fa-check-circle" style="color: #a5d6a7;"></i>
+                <p>All products are well stocked!</p>
             </div>
+            {% endif %}
         </div>
     </div>
 
     <div class="col-md-6">
-        <div class="glass-card">
+        <div class="glass-card h-100">
             <div class="card-header">
-                <span><i class="fas fa-clock me-2" style="color: #4cc9f0;"></i> Recent Transactions</span>
+                <span>
+                    <i class="fas fa-clock-rotate-left me-2" style="color: #2e7d32;"></i>
+                    Recent Transactions
+                </span>
+                <a href="/inventory/" class="view-all">View All</a>
             </div>
-            <div class="card-body p-0">
-                {% if recent_transactions %}
-                <table class="table mb-0">
-                    <thead>
-                        <tr>
-                            <th>Product</th>
-                            <th>Type</th>
-                            <th>Qty</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for tx in recent_transactions %}
-                        <tr>
-                            <td>{{ tx.product.name }}</td>
-                            <td>
-                                {% if tx.transaction_type == 'stock_in' %}
-                                    <span class="badge-glass-success">Stock In</span>
-                                {% else %}
-                                    <span class="badge-glass-warning">Stock Out</span>
-                                {% endif %}
-                            </td>
-                            <td>{{ tx.quantity }}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-                {% else %}
-                <div class="empty-state">
-                    <i class="fas fa-inbox"></i>
-                    <p>No transactions yet.</p>
+            {% if recent_transactions %}
+                {% for tx in recent_transactions %}
+                <div class="tx-item">
+                    <div class="tx-icon {% if tx.transaction_type == 'stock_in' %}in{% else %}out{% endif %}">
+                        <i class="fas fa-arrow-{% if tx.transaction_type == 'stock_in' %}up{% else %}down{% endif %}"></i>
+                    </div>
+                    <div class="tx-info">
+                        <p>{{ tx.product.name }}</p>
+                        <small>
+                            {{ tx.created_at|date:"M d • H:i" }}
+                            {% if user_role == 'admin' %} • {{ tx.performed_by.username }}{% endif %}
+                        </small>
+                    </div>
+                    <div class="tx-amount">
+                        <p>{% if tx.transaction_type == 'stock_in' %}+{% else %}-{% endif %}{{ tx.quantity }}</p>
+                        <small class="{% if tx.transaction_type == 'stock_in' %}settled{% else %}pending{% endif %}">
+                            {% if tx.transaction_type == 'stock_in' %}Stock In{% else %}Stock Out{% endif %}
+                        </small>
+                    </div>
                 </div>
-                {% endif %}
+                {% endfor %}
+            {% else %}
+            <div class="empty-state">
+                <i class="fas fa-inbox"></i>
+                <p>No transactions yet.</p>
             </div>
+            {% endif %}
         </div>
     </div>
 </div>

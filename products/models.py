@@ -1,5 +1,5 @@
 from django.db import models
-
+from django.conf import settings
 
 class Product(models.Model):
     name = models.CharField(max_length=255, unique=True)
@@ -8,6 +8,12 @@ class Product(models.Model):
     unit = models.CharField(max_length=50, help_text="e.g. pcs, kg, box")
     stock_quantity = models.PositiveIntegerField(default=0)
     low_stock_threshold = models.PositiveIntegerField(default=10)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='products_created'
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

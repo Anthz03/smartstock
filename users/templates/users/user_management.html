@@ -1,79 +1,80 @@
 {% extends 'users/base.html' %}
-{% block nav_users %}active{% endblock %}
+{% block nav_users %}acti cve{% endblock %}
 {% block page_title %}User Management{% endblock %}
-{% block page_subtitle %}Manage staff accounts{% endblock %}
+{% block page_subtitle %}Manage staff accounts and roles.{% endblock %}
+
+{% block topbar_action %}
+<a href="/register/" class="btn-glass" style="text-decoration: none;">
+    <i class="fas fa-user-plus"></i> Add Staff
+</a>
+{% endblock %}
 
 {% block content %}
 <div class="glass-card">
     <div class="card-header">
-        <span><i class="fas fa-users me-2" style="color: #4cc9f0;"></i> All Accounts</span>
-        <a href="/register/" class="btn-glass" style="text-decoration: none;">
-            <i class="fas fa-user-plus me-1"></i> Add Staff
-        </a>
+        <span><i class="fas fa-users me-2" style="color: #2e7d32;"></i> All Accounts</span>
+        <span style="font-size: 0.8rem; color: #9ab09a;">{{ users|length }} total</span>
     </div>
-    <div class="card-body p-0">
-        {% if users %}
-        <div class="table-responsive">
-            <table class="table mb-0">
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>User</th>
-                        <th>Email</th>
-                        <th>Role</th>
-                        <th>Joined</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for u in users %}
-                    <tr>
-                        <td style="color: rgba(255,255,255,0.3);">{{ forloop.counter }}</td>
-                        <td>
-                            <div style="display: flex; align-items: center; gap: 10px;">
-                                <div style="width: 32px; height: 32px; background: linear-gradient(135deg, #4cc9f0, #7b5ea7); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 700; color: #fff; flex-shrink: 0;">
-                                    {{ u.username|first|upper }}
-                                </div>
-                                <div>
-                                    <div style="color: #fff; font-weight: 600; font-size: 0.88rem;">{{ u.username }}</div>
-                                    {% if u.username == username %}
-                                        <div style="font-size: 0.7rem; color: #4cc9f0;">You</div>
-                                    {% endif %}
-                                </div>
-                            </div>
-                        </td>
-                        <td style="color: rgba(255,255,255,0.5); font-size: 0.85rem;">{{ u.email|default:"—" }}</td>
-                        <td>
-                            {% if u.role == 'admin' %}
-                                <span class="badge-glass-danger">Admin</span>
-                            {% else %}
-                                <span class="badge-glass-info">Staff</span>
+
+    {% if users %}
+    <table class="table mb-0">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>User</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Joined</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for u in users %}
+            <tr>
+                <td style="color: #b0c4b0;">{{ forloop.counter }}</td>
+                <td>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <div style="width: 32px; height: 32px; background: #eef5ee; border: 1px solid #c8e6c9; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.78rem; font-weight: 700; color: #2e7d32; flex-shrink: 0;">
+                            {{ u.username|first|upper }}
+                        </div>
+                        <div>
+                            <div style="font-weight: 600; color: #1a2e1a; font-size: 0.87rem;">{{ u.username }}</div>
+                            {% if u.username == username %}
+                                <div style="font-size: 0.7rem; color: #2e7d32;">You</div>
                             {% endif %}
-                        </td>
-                        <td style="color: rgba(255,255,255,0.4); font-size: 0.8rem;">{{ u.date_joined|date:"M d, Y" }}</td>
-                        <td>
-                            {% if u.username != username %}
-                            <form method="POST" action="/users/delete/{{ u.id }}/" onsubmit="return confirm('Delete user {{ u.username }}?')">
-                                {% csrf_token %}
-                                <button type="submit" class="btn-danger-glass">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </form>
-                            {% else %}
-                            <span style="color: rgba(255,255,255,0.2); font-size: 0.8rem;">—</span>
-                            {% endif %}
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-        {% else %}
-        <div class="empty-state">
-            <i class="fas fa-users"></i>
-            <p>No users found.</p>
-        </div>
-        {% endif %}
+                        </div>
+                    </div>
+                </td>
+                <td style="color: #6b8f6b; font-size: 0.83rem;">{{ u.email|default:"—" }}</td>
+                <td>
+                    {% if u.role == 'admin' %}
+                        <span class="badge-glass-danger">Admin</span>
+                    {% else %}
+                        <span class="badge-glass-info">Staff</span>
+                    {% endif %}
+                </td>
+                <td style="color: #9ab09a; font-size: 0.82rem;">{{ u.date_joined|date:"M d, Y" }}</td>
+                <td>
+                    {% if u.username != username %}
+                    <form method="POST" action="/users/delete/{{ u.id }}/" onsubmit="return confirm('Delete user {{ u.username }}?')">
+                        {% csrf_token %}
+                        <button type="submit" class="btn-danger-glass">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </form>
+                    {% else %}
+                    <span style="color: #d0e4d0; font-size: 0.8rem;">—</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state">
+        <i class="fas fa-users"></i>
+        <p>No users found.</p>
     </div>
+    {% endif %}
 </div>
 {% endblock %}

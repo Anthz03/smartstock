@@ -103,3 +103,5 @@ SIMPLE_JWT = {
     'ROTATE_REFRESH_TOKENS': True,
     'AUTH_HEADER_TYPES': ('Bearer',),
 }
+
+STATICFILES_DIRS = [BASE_DIR / 'static']

@@ -137,12 +137,16 @@ def products_view(request):
         low_stock_threshold = request.POST.get('low_stock_threshold')
 
         try:
+            from users.models import CustomUser
+            user = CustomUser.objects.get(username=request.session.get('username'))
+
             Product.objects.create(
                 name=name,
                 description=description,
                 unit_cost=unit_cost,
                 unit=unit,
                 low_stock_threshold=low_stock_threshold,
+                created_by=user,
             )
             messages.success(request, 'Product added successfully.')
         except Exception as e:
