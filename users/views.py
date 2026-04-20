@@ -90,6 +90,11 @@ def login_view(request):
             request.session['access'] = data['access']
             request.session['refresh'] = data['refresh']
             request.session['username'] = username
+
+            from users.models import CustomUser
+            user = CustomUser.objects.get(username=username)
+            request.session['role'] = user.role
+
             return redirect('dashboard')
         else:
             messages.error(request, 'Invalid username or password.')
@@ -112,6 +117,7 @@ def dashboard_view(request):
 
     return render(request, 'users/dashboard.html', {
         'username': request.session.get('username'),
+        'user_role': request.session.get('role'),
         'total_products': products.count(),
         'low_stock_count': len(low_stock),
         'low_stock_products': low_stock,
@@ -151,6 +157,7 @@ def products_view(request):
 
     return render(request, 'users/products.html', {
         'username': request.session.get('username'),
+        'user_role': request.session.get('role'),
         'products': products,
         'search': search,
     })
@@ -290,3 +297,47 @@ def register_view(request):
             messages.error(request, f'Error: {str(e)}')
 
     return render(request, 'users/register.html')
+
+def user_management_view(request):
+    if not request.session.get('access'):
+        return redirect('login')
+
+    from users.models import CustomUser
+    current_user = CustomUser.objects.get(username=request.session.get('username'))
+
+    if current_user.role != 'admin':
+        messages.error(request, 'You do not have permission to access this page.')
+        return redirect('dashboard')
+
+    users = CustomUser.objects.all().order_by('date_joined')
+
+    return render(request, 'users/user_management.html', {
+        'username': request.session.get('username'),
+        'user_role': request.session.get('role'),
+        'users': users,
+    })
+
+
+def delete_user(request, user_id):
+    if not request.session.get('access'):
+        return redirect('login')
+
+    from users.models import CustomUser
+    current_user = CustomUser.objects.get(username=request.session.get('username'))
+
+    if current_user.role != 'admin':
+        messages.error(request, 'You do not have permission to do this.')
+        return redirect('dashboard')
+
+    if request.method == 'POST':
+        try:
+            user = CustomUser.objects.get(id=user_id)
+            if user.username == request.session.get('username'):
+                messages.error(request, 'You cannot delete your own account.')
+            else:
+                user.delete()
+                messages.success(request, f'User "{user.username}" deleted successfully.')
+        except CustomUser.DoesNotExist:
+            messages.error(request, 'User not found.')
+
+    return redirect('user-management')

@@ -4,7 +4,7 @@ from .views import (
     RegisterView, UserProfileView,
     login_view, logout_view, dashboard_view,
     products_view, delete_product,
-    inventory_view, stock_in_view, stock_out_view, check_role,register_view
+    inventory_view, stock_in_view, stock_out_view, check_role, register_view, user_management_view, delete_user
 
 )
 
@@ -26,5 +26,9 @@ urlpatterns = [
     path('inventory/', inventory_view, name='inventory'),
     path('inventory/stock-in/', stock_in_view, name='stock-in'),
     path('inventory/stock-out/', stock_out_view, name='stock-out'),
+
+    # ── User Management: Admin ─────────────────────────────────────────
+    path('users/', user_management_view, name='user-management'),
+    path('users/delete/<int:user_id>/', delete_user, name='delete-user'),
 ]
 

@@ -7,86 +7,140 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
             font-family: 'Segoe UI', sans-serif;
         }
+        .orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.15;
+            pointer-events: none;
+        }
+        .orb-1 { width: 400px; height: 400px; background: #4cc9f0; top: -100px; left: -100px; }
+        .orb-2 { width: 300px; height: 300px; background: #7b5ea7; bottom: -50px; right: -50px; }
         .login-card {
-            background: #fff;
-            border-radius: 20px;
-            padding: 40px;
+            background: rgba(255,255,255,0.07);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 24px;
+            padding: 45px 40px;
             width: 100%;
             max-width: 420px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            position: relative;
+            z-index: 10;
         }
-        .login-card .brand {
+        .brand {
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 35px;
         }
-        .login-card .brand i {
-            font-size: 2.5rem;
-            color: #4cc9f0;
+        .brand-icon {
+            width: 60px; height: 60px;
+            background: linear-gradient(135deg, #4cc9f0, #7b5ea7);
+            border-radius: 16px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.5rem; color: #fff;
+            margin: 0 auto 15px;
         }
-        .login-card .brand h2 {
-            font-weight: 700;
-            color: #1a1a2e;
-            margin-top: 10px;
-        }
-        .login-card .brand p {
-            color: #888;
-            font-size: 0.9rem;
-        }
-        .form-control {
-            border-radius: 10px;
-            padding: 12px 15px;
-            border: 1px solid #e0e0e0;
-        }
-        .form-control:focus {
-            border-color: #4cc9f0;
-            box-shadow: 0 0 0 3px rgba(76, 201, 240, 0.15);
+        .brand h2 { color: #fff; font-weight: 700; font-size: 1.6rem; margin-bottom: 5px; }
+        .brand p { color: rgba(255,255,255,0.4); font-size: 0.85rem; }
+        .form-label {
+            color: rgba(255,255,255,0.5);
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
         .input-group-text {
-            border-radius: 10px 0 0 10px;
-            background: #f8f9fa;
-            border: 1px solid #e0e0e0;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-right: none;
             color: #4cc9f0;
+            border-radius: 10px 0 0 10px;
         }
+        .form-control {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-left: none;
+            border-radius: 0 10px 10px 0;
+            color: #fff;
+            padding: 12px 15px;
+        }
+        .form-control:focus {
+            background: rgba(255,255,255,0.08);
+            border-color: rgba(76,201,240,0.4);
+            box-shadow: none;
+            color: #fff;
+            outline: none;
+        }
+        .form-control::placeholder { color: rgba(255,255,255,0.25); }
         .btn-login {
-            background: linear-gradient(135deg, #4cc9f0, #3ab8df);
+            background: linear-gradient(135deg, #4cc9f0, #7b5ea7);
             border: none;
-            border-radius: 10px;
-            padding: 12px;
+            border-radius: 12px;
+            padding: 13px;
             font-weight: 600;
-            font-size: 1rem;
+            font-size: 0.95rem;
             width: 100%;
             color: #fff;
-            margin-top: 10px;
+            margin-top: 8px;
             transition: all 0.3s;
+            cursor: pointer;
         }
         .btn-login:hover {
+            opacity: 0.9;
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(76, 201, 240, 0.4);
+            box-shadow: 0 8px 25px rgba(76,201,240,0.3);
         }
-        .alert {
+        .register-link {
+            text-align: center;
+            margin-top: 22px;
+            color: rgba(255,255,255,0.4);
+            font-size: 0.85rem;
+        }
+        .register-link a {
+            color: #4cc9f0;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .register-link a:hover { text-decoration: underline; }
+        .alert-danger {
+            background: rgba(255,100,100,0.1);
+            border: 1px solid rgba(255,100,100,0.2);
             border-radius: 10px;
+            color: #ff6b6b;
+            font-size: 0.85rem;
+        }
+        .alert-success {
+            background: rgba(50,200,120,0.1);
+            border: 1px solid rgba(50,200,120,0.2);
+            border-radius: 10px;
+            color: #32c878;
+            font-size: 0.85rem;
         }
     </style>
 </head>
 <body>
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+
     <div class="login-card">
         <div class="brand">
-            <i class="fas fa-boxes-stacked"></i>
+            <div class="brand-icon"><i class="fas fa-boxes-stacked"></i></div>
             <h2>SmartStock</h2>
             <p>Inventory & Product Management System</p>
         </div>
 
         {% if messages %}
             {% for message in messages %}
-                <div class="alert alert-{% if message.tags == 'error' %}danger{% elif message.tags == 'success' %}success{% else %}info{% endif %}">
+                <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}success{% endif %} mb-3">
                     {{ message }}
                 </div>
             {% endfor %}
@@ -95,25 +149,26 @@
         <form method="POST">
             {% csrf_token %}
             <div class="mb-3">
-                <label class="form-label fw-semibold">Username</label>
+                <label class="form-label">Username</label>
                 <div class="input-group">
-                    <span class="input-group-text"><i class="fas fa-user"></i></span>
-                    <input type="text" name="username" class="form-control" placeholder="Enter username" required>
+                    <span class="input-group-text"><i class="fas fa-user fa-sm"></i></span>
+                    <input type="text" name="username" class="form-control" placeholder="Enter your username" required>
                 </div>
             </div>
             <div class="mb-4">
-                <label class="form-label fw-semibold">Password</label>
+                <label class="form-label">Password</label>
                 <div class="input-group">
-                    <span class="input-group-text"><i class="fas fa-lock"></i></span>
-                    <input type="password" name="password" class="form-control" placeholder="Enter password" required>
+                    <span class="input-group-text"><i class="fas fa-lock fa-sm"></i></span>
+                    <input type="password" name="password" class="form-control" placeholder="Enter your password" required>
                 </div>
             </div>
             <button type="submit" class="btn-login">
-                <i class="fas fa-sign-in-alt me-2"></i> Login
+                <i class="fas fa-sign-in-alt me-2"></i> Sign In
             </button>
         </form>
-        <div style="text-align: center; margin-top: 20px; color: #888; font-size: 0.9rem;">
-             Don't have an account? <a href="/register/" style="color: #4cc9f0; text-decoration: none; font-weight: 600;">Register here</a>
+
+        <div class="register-link">
+            Don't have an account? <a href="/register/">Register here</a>
         </div>
     </div>
 
