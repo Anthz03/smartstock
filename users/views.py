@@ -5,9 +5,10 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
-from .serializers import RegisterSerializer, UserProfileSerializer
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
+from .serializers import RegisterSerializer, UserProfileSerializer
+from products.models import Product
+from inventory.models import InventoryTransaction
 
 BASE_API_URL = 'http://127.0.0.1:8000/api'
 
@@ -59,6 +60,16 @@ class UserProfileView(APIView):
         return Response({'status': 'error', 'message': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def check_role(request):
+    return Response({
+        'username': request.user.username,
+        'role': request.user.role,
+        'is_authenticated': request.user.is_authenticated,
+    })
+
+
 # ── Frontend Views ─────────────────────────────────────────────────────────
 
 def login_view(request):
@@ -95,26 +106,16 @@ def dashboard_view(request):
     if not request.session.get('access'):
         return redirect('login')
 
-    headers = get_auth_headers(request)
-
-    products_response = requests.get(f'{BASE_API_URL}/products/', headers=headers)
-    if products_response.status_code == 401:
-        messages.error(request, 'Session expired. Please log in again.')
-        return redirect('login')
-    products = products_response.json().get('data', []) if products_response.status_code == 200 else []
-
-    low_stock_response = requests.get(f'{BASE_API_URL}/products/low-stock/', headers=headers)
-    low_stock = low_stock_response.json().get('data', []) if low_stock_response.status_code == 200 else []
-
-    history_response = requests.get(f'{BASE_API_URL}/inventory/history/', headers=headers)
-    history = history_response.json().get('data', []) if history_response.status_code == 200 else []
+    products = Product.objects.all()
+    low_stock = [p for p in products if p.is_low_stock]
+    recent_transactions = InventoryTransaction.objects.all().order_by('-created_at')[:5]
 
     return render(request, 'users/dashboard.html', {
         'username': request.session.get('username'),
-        'total_products': len(products),
+        'total_products': products.count(),
         'low_stock_count': len(low_stock),
         'low_stock_products': low_stock,
-        'recent_transactions': history[:5],
+        'recent_transactions': recent_transactions,
     })
 
 
@@ -122,38 +123,31 @@ def products_view(request):
     if not request.session.get('access'):
         return redirect('login')
 
-    headers = get_auth_headers(request)
-
     if request.method == 'POST':
-        data = {
-            'name': request.POST.get('name'),
-            'description': request.POST.get('description'),
-            'unit_cost': request.POST.get('unit_cost'),
-            'unit': request.POST.get('unit'),
-            'low_stock_threshold': request.POST.get('low_stock_threshold'),
-        }
-        response = requests.post(f'{BASE_API_URL}/products/', json=data, headers=headers)
+        name = request.POST.get('name')
+        description = request.POST.get('description')
+        unit_cost = request.POST.get('unit_cost')
+        unit = request.POST.get('unit')
+        low_stock_threshold = request.POST.get('low_stock_threshold')
 
-        if response.status_code == 201:
+        try:
+            Product.objects.create(
+                name=name,
+                description=description,
+                unit_cost=unit_cost,
+                unit=unit,
+                low_stock_threshold=low_stock_threshold,
+            )
             messages.success(request, 'Product added successfully.')
-        elif response.status_code == 401:
-            messages.error(request, 'Session expired. Please log in again.')
-            return redirect('login')
-        else:
-            error = response.json().get('message', 'Failed to add product.')
-            messages.error(request, f'Error: {error}')
+        except Exception as e:
+            messages.error(request, f'Error: {str(e)}')
 
         return redirect('products')
 
     search = request.GET.get('search', '')
-    url = f'{BASE_API_URL}/products/?search={search}' if search else f'{BASE_API_URL}/products/'
-    response = requests.get(url, headers=headers)
-
-    if response.status_code == 401:
-        messages.error(request, 'Session expired. Please log in again.')
-        return redirect('login')
-
-    products = response.json().get('data', []) if response.status_code == 200 else []
+    products = Product.objects.all().order_by('-created_at')
+    if search:
+        products = products.filter(name__icontains=search)
 
     return render(request, 'users/products.html', {
         'username': request.session.get('username'),
@@ -167,16 +161,12 @@ def delete_product(request, product_id):
         return redirect('login')
 
     if request.method == 'POST':
-        headers = get_auth_headers(request)
-        response = requests.delete(f'{BASE_API_URL}/products/{product_id}/', headers=headers)
-
-        if response.status_code == 200:
+        try:
+            product = Product.objects.get(id=product_id)
+            product.delete()
             messages.success(request, 'Product deleted successfully.')
-        elif response.status_code == 401:
-            messages.error(request, 'Session expired. Please log in again.')
-            return redirect('login')
-        else:
-            messages.error(request, 'Failed to delete product.')
+        except Product.DoesNotExist:
+            messages.error(request, 'Product not found.')
 
     return redirect('products')
 
@@ -185,29 +175,16 @@ def inventory_view(request):
     if not request.session.get('access'):
         return redirect('login')
 
-    headers = get_auth_headers(request)
-
     product_filter = request.GET.get('product', '')
     type_filter = request.GET.get('type', '')
 
-    url = f'{BASE_API_URL}/inventory/history/'
-    params = []
+    transactions = InventoryTransaction.objects.all().order_by('-created_at')
     if product_filter:
-        params.append(f'product={product_filter}')
+        transactions = transactions.filter(product__id=product_filter)
     if type_filter:
-        params.append(f'type={type_filter}')
-    if params:
-        url += '?' + '&'.join(params)
+        transactions = transactions.filter(transaction_type=type_filter)
 
-    response = requests.get(url, headers=headers)
-    if response.status_code == 401:
-        messages.error(request, 'Session expired. Please log in again.')
-        return redirect('login')
-
-    transactions = response.json().get('data', []) if response.status_code == 200 else []
-
-    products_response = requests.get(f'{BASE_API_URL}/products/', headers=headers)
-    products = products_response.json().get('data', []) if products_response.status_code == 200 else []
+    products = Product.objects.all()
 
     return render(request, 'users/inventory.html', {
         'username': request.session.get('username'),
@@ -223,22 +200,27 @@ def stock_in_view(request):
         return redirect('login')
 
     if request.method == 'POST':
-        headers = get_auth_headers(request)
-        data = {
-            'product': request.POST.get('product'),
-            'quantity': request.POST.get('quantity'),
-            'notes': request.POST.get('notes'),
-        }
-        response = requests.post(f'{BASE_API_URL}/inventory/stock-in/', json=data, headers=headers)
+        try:
+            product = Product.objects.get(id=request.POST.get('product'))
+            quantity = int(request.POST.get('quantity'))
+            notes = request.POST.get('notes', '')
 
-        if response.status_code == 201:
+            product.stock_quantity += quantity
+            product.save()
+
+            from users.models import CustomUser
+            user = CustomUser.objects.get(username=request.session.get('username'))
+
+            InventoryTransaction.objects.create(
+                product=product,
+                transaction_type='stock_in',
+                quantity=quantity,
+                notes=notes,
+                performed_by=user,
+            )
             messages.success(request, 'Stock in recorded successfully.')
-        elif response.status_code == 401:
-            messages.error(request, 'Session expired. Please log in again.')
-            return redirect('login')
-        else:
-            error = response.json().get('message', 'Failed to record stock in.')
-            messages.error(request, f'Error: {error}')
+        except Exception as e:
+            messages.error(request, f'Error: {str(e)}')
 
     return redirect('inventory')
 
@@ -248,29 +230,63 @@ def stock_out_view(request):
         return redirect('login')
 
     if request.method == 'POST':
-        headers = get_auth_headers(request)
-        data = {
-            'product': request.POST.get('product'),
-            'quantity': request.POST.get('quantity'),
-            'notes': request.POST.get('notes'),
-        }
-        response = requests.post(f'{BASE_API_URL}/inventory/stock-out/', json=data, headers=headers)
+        try:
+            product = Product.objects.get(id=request.POST.get('product'))
+            quantity = int(request.POST.get('quantity'))
+            notes = request.POST.get('notes', '')
 
-        if response.status_code == 201:
+            if product.stock_quantity < quantity:
+                messages.error(request, f'Not enough stock. Current stock is {product.stock_quantity}.')
+                return redirect('inventory')
+
+            product.stock_quantity -= quantity
+            product.save()
+
+            from users.models import CustomUser
+            user = CustomUser.objects.get(username=request.session.get('username'))
+
+            InventoryTransaction.objects.create(
+                product=product,
+                transaction_type='stock_out',
+                quantity=quantity,
+                notes=notes,
+                performed_by=user,
+            )
             messages.success(request, 'Stock out recorded successfully.')
-        elif response.status_code == 401:
-            messages.error(request, 'Session expired. Please log in again.')
-            return redirect('login')
-        else:
-            error = response.json().get('message', 'Failed to record stock out.')
-            messages.error(request, f'Error: {error}')
+        except Exception as e:
+            messages.error(request, f'Error: {str(e)}')
 
     return redirect('inventory')
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def check_role(request):
-    return Response({
-        'username': request.user.username,
-        'role': request.user.role,
-        'is_authenticated': request.user.is_authenticated,
-    })
+
+def register_view(request):
+    if request.session.get('access'):
+        return redirect('dashboard')
+
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        email = request.POST.get('email')
+        password = request.POST.get('password')
+        password2 = request.POST.get('password2')
+
+        if password != password2:
+            messages.error(request, 'Passwords do not match.')
+            return render(request, 'users/register.html')
+
+        from users.models import CustomUser
+        if CustomUser.objects.filter(username=username).exists():
+            messages.error(request, 'Username already exists.')
+            return render(request, 'users/register.html')
+
+        try:
+            CustomUser.objects.create_user(
+                username=username,
+                email=email,
+                password=password,
+                role='staff',
+            )
+            messages.success(request, 'Account created! Please log in.')
+            return redirect('login')
+        except Exception as e:
+            messages.error(request, f'Error: {str(e)}')
+
+    return render(request, 'users/register.html')

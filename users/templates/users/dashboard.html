@@ -1,0 +1,134 @@
+{% extends 'users/base.html' %}
+
+{% block nav_dashboard %}active{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+
+<div class="row g-4 mb-4">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body p-4">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <p class="text-muted mb-1">Total Products</p>
+                        <h2 class="fw-bold mb-0">{{ total_products }}</h2>
+                    </div>
+                    <div style="background: rgba(76,201,240,0.1); border-radius: 12px; padding: 15px;">
+                        <i class="fas fa-box fa-2x" style="color: #4cc9f0;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body p-4">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <p class="text-muted mb-1">Low Stock Alerts</p>
+                        <h2 class="fw-bold mb-0 text-danger">{{ low_stock_count }}</h2>
+                    </div>
+                    <div style="background: rgba(255,99,99,0.1); border-radius: 12px; padding: 15px;">
+                        <i class="fas fa-triangle-exclamation fa-2x text-danger"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body p-4">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <p class="text-muted mb-1">Recent Transactions</p>
+                        <h2 class="fw-bold mb-0">{{ recent_transactions|length }}</h2>
+                    </div>
+                    <div style="background: rgba(76,201,240,0.1); border-radius: 12px; padding: 15px;">
+                        <i class="fas fa-arrow-right-arrow-left fa-2x" style="color: #4cc9f0;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-triangle-exclamation text-danger me-2"></i> Low Stock Products
+            </div>
+            <div class="card-body p-0">
+                {% if low_stock_products %}
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Product</th>
+                            <th>Stock</th>
+                            <th>Threshold</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for product in low_stock_products %}
+                        <tr>
+                            <td>{{ product.name }}</td>
+                            <td><span class="badge bg-danger">{{ product.stock_quantity }}</span></td>
+                            <td>{{ product.low_stock_threshold }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="text-center py-4 text-muted">
+                    <i class="fas fa-check-circle fa-2x text-success mb-2"></i>
+                    <p>All products are well stocked!</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-clock me-2" style="color: #4cc9f0;"></i> Recent Transactions
+            </div>
+            <div class="card-body p-0">
+                {% if recent_transactions %}
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Product</th>
+                            <th>Type</th>
+                            <th>Qty</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for tx in recent_transactions %}
+                        <tr>
+                            <td>{{ tx.product.name }}</td>
+                            <td>
+                                {% if tx.transaction_type == 'stock_in' %}
+                                    <span class="badge bg-success">Stock In</span>
+                                {% else %}
+                                    <span class="badge bg-warning text-dark">Stock Out</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ tx.quantity }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="text-center py-4 text-muted">
+                    <i class="fas fa-inbox fa-2x mb-2"></i>
+                    <p>No transactions yet.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

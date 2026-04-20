@@ -1,0 +1,141 @@
+{% extends 'users/base.html' %}
+
+{% block nav_inventory %}active{% endblock %}
+{% block page_title %}Inventory{% endblock %}
+
+{% block content %}
+
+<div class="row g-3 mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-arrow-down text-success me-2"></i> Stock In
+            </div>
+            <form method="POST" action="/inventory/stock-in/">
+                {% csrf_token %}
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Product</label>
+                        <select name="product" class="form-select" required>
+                            <option value="">-- Select Product --</option>
+                            {% for product in products %}
+                            <option value="{{ product.id }}">{{ product.name }} (Stock: {{ product.stock_quantity }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Quantity</label>
+                        <input type="number" name="quantity" class="form-control" min="1" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Notes</label>
+                        <input type="text" name="notes" class="form-control" placeholder="Optional">
+                    </div>
+                    <button type="submit" class="btn btn-success w-100">
+                        <i class="fas fa-plus me-2"></i> Record Stock In
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-arrow-up text-warning me-2"></i> Stock Out
+            </div>
+            <form method="POST" action="/inventory/stock-out/">
+                {% csrf_token %}
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Product</label>
+                        <select name="product" class="form-select" required>
+                            <option value="">-- Select Product --</option>
+                            {% for product in products %}
+                            <option value="{{ product.id }}">{{ product.name }} (Stock: {{ product.stock_quantity }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Quantity</label>
+                        <input type="number" name="quantity" class="form-control" min="1" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Notes</label>
+                        <input type="text" name="notes" class="form-control" placeholder="Optional">
+                    </div>
+                    <button type="submit" class="btn btn-warning w-100">
+                        <i class="fas fa-minus me-2"></i> Record Stock Out
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="fas fa-history me-2" style="color: #4cc9f0;"></i> Transaction History</span>
+        <form method="GET" class="d-flex gap-2">
+            <select name="type" class="form-select form-select-sm" style="width: auto;">
+                <option value="">All Types</option>
+                <option value="stock_in" {% if type_filter == 'stock_in' %}selected{% endif %}>Stock In</option>
+                <option value="stock_out" {% if type_filter == 'stock_out' %}selected{% endif %}>Stock Out</option>
+            </select>
+            <select name="product" class="form-select form-select-sm" style="width: auto;">
+                <option value="">All Products</option>
+                {% for product in products %}
+                <option value="{{ product.id }}" {% if product_filter == product.id|stringformat:"s" %}selected{% endif %}>
+                    {{ product.name }}
+                </option>
+                {% endfor %}
+            </select>
+            <button type="submit" class="btn btn-primary btn-sm">Filter</button>
+        </form>
+    </div>
+    <div class="card-body p-0">
+        {% if transactions %}
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>#</th>
+                        <th>Product</th>
+                        <th>Type</th>
+                        <th>Quantity</th>
+                        <th>Notes</th>
+                        <th>Performed By</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for tx in transactions %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td><strong>{{ tx.product_name }}</strong></td>
+                        <td>
+                            {% if tx.transaction_type == 'stock_in' %}
+                                <span class="badge bg-success">Stock In</span>
+                            {% else %}
+                                <span class="badge bg-warning text-dark">Stock Out</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ tx.quantity }}</td>
+                        <td>{{ tx.notes|default:"-" }}</td>
+                        <td>{{ tx.performed_by_username }}</td>
+                        <td>{{ tx.created_at|date:"M d, Y H:i" }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5 text-muted">
+            <i class="fas fa-inbox fa-3x mb-3"></i>
+            <p>No transactions found.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}

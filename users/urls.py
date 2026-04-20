@@ -4,7 +4,7 @@ from .views import (
     RegisterView, UserProfileView,
     login_view, logout_view, dashboard_view,
     products_view, delete_product,
-    inventory_view, stock_in_view, stock_out_view, check_role,
+    inventory_view, stock_in_view, stock_out_view, check_role,register_view
 
 )
 
@@ -15,6 +15,7 @@ urlpatterns = [
     path('auth/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('users/profile/', UserProfileView.as_view(), name='profile'),
     path('auth/check-role/', check_role, name='check-role'),
+    path('register/', register_view, name='register-page'),
 
     # ── Frontend pages ─────────────────────────────────────────
     path('', login_view, name='login'),

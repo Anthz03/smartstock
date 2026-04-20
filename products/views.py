@@ -5,9 +5,10 @@ from rest_framework.views import APIView
 from users.permissions import IsAdmin, IsAdminOrStaff
 from .models import Product
 from .serializers import ProductSerializer
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
 
-
-
+@method_decorator(csrf_exempt, name='dispatch')
 class ProductListCreateView(APIView):
     permission_classes = []
 
@@ -43,8 +44,9 @@ class ProductListCreateView(APIView):
             status=status.HTTP_400_BAD_REQUEST
         )
 
-
+@method_decorator(csrf_exempt, name='dispatch')
 class ProductDetailView(APIView):
+    permission_classes = []
 
     def get_permissions(self):
         if self.request.method == 'GET':

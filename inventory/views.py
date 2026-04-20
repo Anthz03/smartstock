@@ -4,10 +4,15 @@ from rest_framework.views import APIView
 from users.permissions import IsAdmin, IsAdminOrStaff
 from .models import InventoryTransaction
 from .serializers import InventoryTransactionSerializer
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
 
-
+@method_decorator(csrf_exempt, name='dispatch')
 class StockInView(APIView):
-    permission_classes = [IsAdmin]
+    permission_classes = []
+
+    def get_permissions(self):
+        return [IsAdmin()]
 
     def post(self, request):
         serializer = InventoryTransactionSerializer(data=request.data)
@@ -36,9 +41,12 @@ class StockInView(APIView):
             status=status.HTTP_400_BAD_REQUEST
         )
 
-
+@method_decorator(csrf_exempt, name='dispatch')
 class StockOutView(APIView):
-    permission_classes = [IsAdmin]
+    permission_classes = []
+
+    def get_permissions(self):
+        return [IsAdmin()]
 
     def post(self, request):
         serializer = InventoryTransactionSerializer(data=request.data)
@@ -67,9 +75,12 @@ class StockOutView(APIView):
             status=status.HTTP_400_BAD_REQUEST
         )
 
-
+@method_decorator(csrf_exempt, name='dispatch')
 class InventoryHistoryView(APIView):
-    permission_classes = [IsAdminOrStaff]
+    permission_classes = []
+
+    def get_permissions(self):
+        return [IsAdminOrStaff()]
 
     def get(self, request):
         queryset = InventoryTransaction.objects.all().order_by('-created_at')
