@@ -1,0 +1,138 @@
+{% extends 'users/base.html' %}
+{% block nav_inventory %}active{% endblock %}
+{% block page_title %}Inventory{% endblock %}
+{% block page_subtitle %}Track and manage stock movements.{% endblock %}
+
+{% block content %}
+<div class="row g-3 mb-4">
+    <div class="col-md-6">
+        <div class="glass-card">
+            <div class="card-header">
+                <span><i class="fas fa-arrow-up me-2" style="color: #2e7d32;"></i> Stock In</span>
+            </div>
+            <form method="POST" action="/inventory/stock-in/">
+                {% csrf_token %}
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label">Product</label>
+                        <select name="product" class="form-select" required>
+                            <option value="">Select a product</option>
+                            {% for product in products %}
+                            <option value="{{ product.id }}">{{ product.name }} — {{ product.stock_quantity }} {{ product.unit }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Quantity</label>
+                        <input type="number" name="quantity" class="form-control" min="1" placeholder="Enter quantity" required>
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label">Notes (optional)</label>
+                        <input type="text" name="notes" class="form-control" placeholder="e.g. Delivery from supplier">
+                    </div>
+                    <button type="submit" class="btn-success-glass">
+                        <i class="fas fa-plus"></i> Record Stock In
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="glass-card">
+            <div class="card-header">
+                <span><i class="fas fa-arrow-down me-2" style="color: #e65100;"></i> Stock Out</span>
+            </div>
+            <form method="POST" action="/inventory/stock-out/">
+                {% csrf_token %}
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label">Product</label>
+                        <select name="product" class="form-select" required>
+                            <option value="">Select a product</option>
+                            {% for product in products %}
+                            <option value="{{ product.id }}">{{ product.name }} — {{ product.stock_quantity }} {{ product.unit }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Quantity</label>
+                        <input type="number" name="quantity" class="form-control" min="1" placeholder="Enter quantity" required>
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label">Notes (optional)</label>
+                        <input type="text" name="notes" class="form-control" placeholder="e.g. Sold to customer">
+                    </div>
+                    <button type="submit" class="btn-warning-glass">
+                        <i class="fas fa-minus"></i> Record Stock Out
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="glass-card">
+    <div class="card-header">
+        <span><i class="fas fa-clock-rotate-left me-2" style="color: #2e7d32;"></i> Transaction History</span>
+        <form method="GET" class="d-flex gap-2">
+            <select name="type" class="form-select form-select-sm" style="width: auto; font-size: 0.82rem;">
+                <option value="">All Types</option>
+                <option value="stock_in" {% if type_filter == 'stock_in' %}selected{% endif %}>Stock In</option>
+                <option value="stock_out" {% if type_filter == 'stock_out' %}selected{% endif %}>Stock Out</option>
+            </select>
+            <select name="product" class="form-select form-select-sm" style="width: auto; font-size: 0.82rem;">
+                <option value="">All Products</option>
+                {% for product in products %}
+                <option value="{{ product.id }}" {% if product_filter == product.id|stringformat:"s" %}selected{% endif %}>{{ product.name }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit" class="btn-outline-glass" style="padding: 5px 12px; font-size: 0.8rem;">Filter</button>
+        </form>
+    </div>
+
+    {% if transactions %}
+    <table class="table mb-0">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Product</th>
+                <th>Type</th>
+                <th>Quantity</th>
+                <th>Notes</th>
+                <th>By</th>
+                <th>Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for tx in transactions %}
+            <tr>
+                <td style="color: #b0c4b0;">{{ forloop.counter }}</td>
+                <td><strong>{{ tx.product.name }}</strong></td>
+                <td>
+                    {% if tx.transaction_type == 'stock_in' %}
+                        <span class="badge-glass-success">Stock In</span>
+                    {% else %}
+                        <span class="badge-glass-warning">Stock Out</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <strong style="{% if tx.transaction_type == 'stock_in' %}color: #2e7d32;{% else %}color: #e65100;{% endif %}">
+                        {% if tx.transaction_type == 'stock_in' %}+{% else %}-{% endif %}{{ tx.quantity }}
+                    </strong>
+                </td>
+                <td style="color: #9ab09a;">{{ tx.notes|default:"—" }}</td>
+                <td style="color: #6b8f6b;">{{ tx.performed_by.username }}</td>
+                <td style="color: #9ab09a; font-size: 0.8rem;">{{ tx.created_at|date:"M d, Y H:i" }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state">
+        <i class="fas fa-inbox"></i>
+        <p>No transactions found.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
